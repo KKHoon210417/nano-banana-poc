@@ -1,0 +1,5 @@
+{
+  "env": {
+    "GOOGLE_API_KEY": "@google-api-key"
+  }
+}

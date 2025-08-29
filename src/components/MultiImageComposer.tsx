@@ -1,6 +1,9 @@
 'use client'
 
 import { useState } from 'react'
+import ImageActions from './ImageActions'
+import ApiKeySetup from './ApiKeySetup'
+import { apiKeyManager } from '@/lib/apiKeyManager'
 
 export default function MultiImageComposer() {
   const [prompt, setPrompt] = useState('')
@@ -24,10 +27,18 @@ export default function MultiImageComposer() {
   const handleCompose = async () => {
     if (!prompt.trim() || images.length === 0) return
 
+    // API 키 확인
+    const apiKey = apiKeyManager.getApiKey()
+    if (!apiKey) {
+      setResult({ type: 'error', content: 'API 키를 먼저 설정해주세요.' })
+      return
+    }
+
     setLoading(true)
     try {
       const formData = new FormData()
       formData.append('prompt', prompt)
+      formData.append('apiKey', apiKey)
       images.forEach(image => {
         formData.append('images', image)
       })
@@ -60,6 +71,7 @@ export default function MultiImageComposer() {
 
   return (
     <div className="space-y-6">
+      <ApiKeySetup />
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
           이미지 업로드 (최대 3개)
@@ -145,6 +157,11 @@ export default function MultiImageComposer() {
                   className="w-full max-w-2xl mx-auto"
                 />
               </div>
+              <ImageActions 
+                imageUrl={result.content}
+                altText="Composed image"
+                filename="multi-image-compose"
+              />
               <div className="text-sm text-gray-500 text-center">
                 합성된 이미지 (SynthID 워터마크 포함)
               </div>

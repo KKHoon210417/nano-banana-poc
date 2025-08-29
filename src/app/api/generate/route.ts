@@ -3,7 +3,7 @@ import { generateImage } from '@/lib/gemini'
 
 export async function POST(request: NextRequest) {
   try {
-    const { prompt } = await request.json()
+    const { prompt, apiKey } = await request.json()
     
     if (!prompt) {
       return NextResponse.json(
@@ -12,7 +12,14 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const result = await generateImage(prompt)
+    if (!apiKey) {
+      return NextResponse.json(
+        { success: false, error: 'API key is required' },
+        { status: 400 }
+      )
+    }
+
+    const result = await generateImage(prompt, apiKey)
 
     return NextResponse.json({
       success: true,

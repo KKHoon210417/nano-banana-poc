@@ -5,6 +5,7 @@ export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData()
     const prompt = formData.get('prompt') as string
+    const apiKey = formData.get('apiKey') as string
     const files = formData.getAll('images') as File[]
 
     if (!prompt || files.length === 0) {
@@ -14,7 +15,14 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const result = await editImageWithText(prompt, files)
+    if (!apiKey) {
+      return NextResponse.json(
+        { success: false, error: 'API key is required' },
+        { status: 400 }
+      )
+    }
+
+    const result = await editImageWithText(prompt, files, apiKey)
 
     return NextResponse.json({
       success: true,

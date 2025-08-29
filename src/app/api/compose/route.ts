@@ -5,11 +5,19 @@ export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData()
     const prompt = formData.get('prompt') as string
+    const apiKey = formData.get('apiKey') as string
     const files = formData.getAll('images') as File[]
 
     if (!prompt || files.length === 0) {
       return NextResponse.json(
         { success: false, error: 'Prompt and at least one image are required' },
+        { status: 400 }
+      )
+    }
+
+    if (!apiKey) {
+      return NextResponse.json(
+        { success: false, error: 'API key is required' },
         { status: 400 }
       )
     }
@@ -21,7 +29,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const result = await composeMultipleImages(prompt, files)
+    const result = await composeMultipleImages(prompt, files, apiKey)
 
     return NextResponse.json({
       success: true,

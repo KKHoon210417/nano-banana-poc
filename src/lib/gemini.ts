@@ -1,19 +1,16 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
-const apiKey = process.env.GOOGLE_API_KEY;
-if (!apiKey) {
-  throw new Error("GOOGLE_API_KEY is not set in environment variables");
+function createModel(apiKey: string) {
+  const genAI = new GoogleGenerativeAI(apiKey);
+  return genAI.getGenerativeModel({
+    model: "gemini-2.5-flash-image-preview",
+  });
 }
 
-const genAI = new GoogleGenerativeAI(apiKey);
-
-export const textToImageModel = genAI.getGenerativeModel({
-  model: "gemini-2.5-flash-image-preview",
-});
-
-export async function generateImage(prompt: string) {
+export async function generateImage(prompt: string, apiKey: string) {
   try {
-    const result = await textToImageModel.generateContent([prompt]);
+    const model = createModel(apiKey);
+    const result = await model.generateContent([prompt]);
 
     // 이미지 데이터 추출
     const response = await result.response;
@@ -67,7 +64,7 @@ export async function generateImage(prompt: string) {
   }
 }
 
-export async function editImageWithText(prompt: string, images: File[]) {
+export async function editImageWithText(prompt: string, images: File[], apiKey: string) {
   try {
     const imagePromises = images.map(async (file) => {
       const bytes = await file.arrayBuffer();
@@ -82,7 +79,8 @@ export async function editImageWithText(prompt: string, images: File[]) {
     const imageData = await Promise.all(imagePromises);
     const parts = [...imageData, prompt];
 
-    const result = await textToImageModel.generateContent(parts);
+    const model = createModel(apiKey);
+    const result = await model.generateContent(parts);
 
     // 이미지 데이터 추출
     const response = await result.response;
@@ -134,10 +132,10 @@ export async function editImageWithText(prompt: string, images: File[]) {
   }
 }
 
-export async function composeMultipleImages(prompt: string, images: File[]) {
+export async function composeMultipleImages(prompt: string, images: File[], apiKey: string) {
   if (images.length > 3) {
     throw new Error("Maximum 3 images are allowed");
   }
 
-  return editImageWithText(prompt, images);
+  return editImageWithText(prompt, images, apiKey);
 }
